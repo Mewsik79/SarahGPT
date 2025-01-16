@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Sarah AI - 1997</title>
+        <style>
+          #conversation {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+          }
+          .user-msg { color: blue; }
+          .sarah-msg { color: green; }
+          #user-input { width: 60%; }
+          #controls { margin-top: 10px; }
+        </style>
+      </head>
+      <body>
+        <div id="app">
+          <div id="conversation"></div>
+          <div id="controls">
+            <input type="text" id="user-input" placeholder="Type your message..." />
+            <button id="send-btn">Send</button>
+            <button id="restart-btn">Restart</button>
+          </div>
+        </div>
+        <script type="module" src="/src/main.js"></script>
+      </body>
+    </html>
