@@ -1,46 +1,48 @@
-import { SarahAI } from './sarah-ai.js';
+// Update the initialization to use the new endpoint
+    async function initializeChat() {
+      try {
+        // Update status to show we're checking the new endpoint
+        loadingIndicator.textContent = 'Connecting to model server...';
+        
+        // Test connection to the new endpoint
+        const isConnected = await sarah.ollama.checkServerStatus();
+        
+        if (!isConnected) {
+          connectionStatus.textContent = '🔴 Model server not connected';
+          connectionStatus.style.backgroundColor = '#fee2e2';
+          loadingIndicator.textContent = 'Failed to connect to model server. Please ensure it is running at http://localhost:3000';
+          return;
+        }
 
-    const sarah = new SarahAI();
-    const conversationDiv = document.getElementById('conversation');
-    const userInput = document.getElementById('user-input');
-    const sendBtn = document.getElementById('send-btn');
-    const restartBtn = document.getElementById('restart-btn');
+        // Test model availability
+        loadingIndicator.textContent = 'Checking model availability...';
+        const modelAvailable = await sarah.ollama.checkModelAvailability();
+        
+        if (!modelAvailable) {
+          connectionStatus.textContent = '🔴 Model not available';
+          connectionStatus.style.backgroundColor = '#fee2e2';
+          loadingIndicator.textContent = 'The required model is not available on the server.';
+          return;
+        }
 
-    function addMessage(speaker, message) {
-      const msgDiv = document.createElement('div');
-      msgDiv.className = speaker === 'user' ? 'user-msg' : 'sarah-msg';
-      msgDiv.textContent = `${speaker === 'user' ? 'You' : 'Sarah'}: ${message}`;
-      conversationDiv.appendChild(msgDiv);
-      conversationDiv.scrollTop = conversationDiv.scrollHeight;
+        // If both checks pass
+        connectionStatus.textContent = '🟢 Connected to model server';
+        connectionStatus.style.backgroundColor = '#d1fae5';
+        loadingIndicator.remove();
+        
+        // Enable UI
+        userInput.disabled = false;
+        sendBtn.disabled = false;
+        restartBtn.disabled = false;
+
+        // Start chat
+        addMessage('sarah', sarah.getRandomGreeting());
+      } catch (error) {
+        console.error('Initialization error:', error);
+        connectionStatus.textContent = '🔴 Connection error';
+        connectionStatus.style.backgroundColor = '#fee2e2';
+        loadingIndicator.textContent = 'An error occurred during initialization. Please check the console.';
+      }
     }
 
-    function restartGame() {
-      conversationDiv.innerHTML = '';
-      sarah = new SarahAI();
-      addMessage('sarah', sarah.getRandomGreeting());
-    }
-
-    async function handleUserInput() {
-      const userMessage = userInput.value.trim();
-      if (!userMessage) return;
-
-      addMessage('user', userMessage);
-      userInput.value = '';
-      userInput.disabled = true;
-
-      const sarahResponse = await sarah.generateResponse(userMessage);
-      addMessage('sarah', sarahResponse);
-
-      userInput.disabled = false;
-      userInput.focus();
-    }
-
-    sendBtn.addEventListener('click', handleUserInput);
-    userInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') handleUserInput();
-    });
-
-    restartBtn.addEventListener('click', restartGame);
-
-    // Initial greeting
-    addMessage('sarah', sarah.getRandomGreeting());
+    // Rest of your existing code...

@@ -28,40 +28,6 @@ import { OllamaClient } from './ollama-client.js';
         return greetings[Math.floor(Math.random() * greetings.length)];
       }
 
-      async generateResponse(userMessage) {
-        this.updateContext(userMessage);
-        this.storySystem.updateProbabilities(this.context.lastTopics);
-        this.timeline.advance();
-        this.context.storyProgress += 1;
-
-        // Get story progression prompt if needed
-        const currentPath = this.storySystem.getCurrentPath();
-        const storyPrompt = this.storySystem.getStoryPrompt(
-          currentPath,
-          this.context.storyProgress
-        );
-
-        const prompt = this.createPrompt(userMessage, storyPrompt);
-        const response = await this.ollama.generateResponse(prompt);
-        
-        this.logConversation(userMessage, response);
-        return response;
-      }
-
-      createPrompt(userMessage, storyPrompt) {
-        return `You are Sarah, a 17-year-old Australian girl in 1997. Respond to this message in character:
-        Current Date: ${this.timeline.getFormattedDate()}
-        Current Story Path: ${this.storySystem.getCurrentPath()}
-        Recent Topics: ${this.context.lastTopics.join(', ')}
-        Story Progress: ${this.context.storyProgress}
-        ${storyPrompt ? `Story Prompt: ${storyPrompt}` : ''}
-        User Message: ${userMessage}
-
-        Respond using 1990s Australian slang and speak with a Queensland accent. 
-        Be expressive and candid. Keep responses under 150 words. 
-        If appropriate, subtly steer the conversation towards current story path topics.`;
-      }
-
       updateContext(userMessage) {
         const topics = this.extractTopics(userMessage);
         this.context.lastTopics = topics.slice(0, 3);
@@ -79,6 +45,21 @@ import { OllamaClient } from './ollama-client.js';
         );
       }
 
+      createPrompt(userMessage, storyPrompt) {
+        return `You are Sarah, a 17-year-old Australian girl in 1997. Respond to this message in character:
+        Current Date: ${this.timeline.getFormattedDate()}
+        Current Story Path: ${this.storySystem.getCurrentPath()}
+        Recent Topics: ${this.context.lastTopics.join(', ')}
+        Story Progress: ${this.context.storyProgress}
+        ${storyPrompt ? `Story Prompt: ${storyPrompt}` : ''}
+        User Message: ${userMessage}
+
+        Respond using 1990s Australian slang and speak with a Queensland accent. 
+        Be expressive and candid. Keep responses under 150 words. 
+        If appropriate, subtly steer the conversation towards current story path topics.`;
+      }
+
+      // Add missing logConversation method
       logConversation(userMessage, response) {
         this.conversationLog.push({
           date: this.timeline.getFormattedDate(),
@@ -88,5 +69,24 @@ import { OllamaClient } from './ollama-client.js';
           topics: this.context.lastTopics,
           progress: this.context.storyProgress
         });
+      }
+
+      async generateResponse(userMessage) {
+        this.updateContext(userMessage);
+        this.storySystem.updateProbabilities(this.context.lastTopics);
+        this.timeline.advance();
+        this.context.storyProgress += 1;
+
+        const currentPath = this.storySystem.getCurrentPath();
+        const storyPrompt = this.storySystem.getStoryPrompt(
+          currentPath,
+          this.context.storyProgress
+        );
+
+        const prompt = this.createPrompt(userMessage, storyPrompt);
+        const response = await this.ollama.generateResponse(prompt);
+        
+        this.logConversation(userMessage, response);
+        return response;
       }
     }
